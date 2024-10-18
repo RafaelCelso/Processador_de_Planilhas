@@ -22,19 +22,39 @@ def upload_file():
     app.logger.info("Iniciando upload de arquivo")
     try:
         if 'file' not in request.files:
+            app.logger.error("Nenhum arquivo enviado")
             return jsonify({'error': 'Nenhum arquivo enviado'}), 400
         
         file = request.files['file']
         if file.filename == '':
+            app.logger.error("Nenhum arquivo selecionado")
             return jsonify({'error': 'Nenhum arquivo selecionado'}), 400
         
         if file and file.filename.endswith('.xlsx'):
             filename = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(filename)
+            app.logger.info(f"Arquivo salvo: {filename}")
             
-            processed_file = process_excel(filename)
-            translated_file = translate_excel(processed_file)
-            summary = generate_summary(translated_file)
+            try:
+                processed_file = process_excel(filename)
+                app.logger.info(f"Arquivo processado: {processed_file}")
+            except Exception as e:
+                app.logger.error(f"Erro ao processar o arquivo: {str(e)}")
+                return jsonify({'error': 'Erro ao processar o arquivo'}), 500
+            
+            try:
+                translated_file = translate_excel(processed_file)
+                app.logger.info(f"Arquivo traduzido: {translated_file}")
+            except Exception as e:
+                app.logger.error(f"Erro ao traduzir o arquivo: {str(e)}")
+                return jsonify({'error': 'Erro ao traduzir o arquivo'}), 500
+            
+            try:
+                summary = generate_summary(translated_file)
+                app.logger.info("Resumo gerado com sucesso")
+            except Exception as e:
+                app.logger.error(f"Erro ao gerar resumo: {str(e)}")
+                summary = "Não foi possível gerar o resumo. Por favor, tente novamente mais tarde."
             
             return jsonify({
                 'message': 'Arquivo processado com sucesso',
