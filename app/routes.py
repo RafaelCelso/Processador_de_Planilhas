@@ -5,9 +5,10 @@ import os
 import logging
 import traceback
 import json
+import tempfile
 
-# Modifique esta linha para usar o caminho absoluto
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'uploads')
+# Substitua a definição de UPLOAD_FOLDER por:
+UPLOAD_FOLDER = tempfile.gettempdir()
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 

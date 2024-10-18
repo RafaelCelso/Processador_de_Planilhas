@@ -80,3 +80,4 @@ def generate_summary(filename):
         logging.error(f"Erro ao gerar o resumo: {str(e)}")
         logging.error(traceback.format_exc())
         raise
+
