@@ -7,8 +7,5 @@ load_dotenv()  # Carrega as variáveis de ambiente do arquivo .env
 
 from app import app
 
-# Remova esta linha
-# app = app.wsgi_app
-
 if __name__ == '__main__':
     app.run(debug=True)

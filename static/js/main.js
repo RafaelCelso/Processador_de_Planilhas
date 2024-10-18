@@ -97,35 +97,43 @@ document.addEventListener('DOMContentLoaded', function() {
             resultDiv.style.display = 'none';
             progress.style.display = 'flex';
             progressBar.style.width = '0%';
-            progressBar.textContent = 'Processando...';
             
             const response = await fetch('/upload', {
                 method: 'POST',
                 body: formData
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const data = JSON.parse(chunk);
+
+                progressBar.style.width = `${data.progress}%`;
+                progressBar.textContent = `${data.status} - ${data.progress}%`;
+
+                if (data.progress === 100) {
+                    progress.style.display = 'none';
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = `
+                        <h2 class="mb-3">Resultado:</h2>
+                        <p class="alert alert-success">${data.message}</p>
+                        <a href="/download/${data.translated_file}" class="btn btn-primary mb-3">Baixar arquivo traduzido</a>
+                        <h3 class="mt-4">Resumo:</h3>
+                        <p class="bg-light p-3 rounded">${data.summary}</p>
+                    `;
+
+                    // Dispara os confetes
+                    fireConfetti();
+
+                    // Reset the upload area
+                    resetUploadArea();
+                }
             }
-
-            const data = await response.json();
-            console.log('Resposta do servidor:', data);
-
-            progress.style.display = 'none';
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `
-                <h2 class="mb-3">Resultado:</h2>
-                <p class="alert alert-success">${data.message}</p>
-                <a href="/download/${data.translated_file}" class="btn btn-primary mb-3">Baixar arquivo traduzido</a>
-                <h3 class="mt-4">Resumo:</h3>
-                <p class="bg-light p-3 rounded">${data.summary}</p>
-            `;
-
-            // Dispara os confetes
-            fireConfetti();
-
-            // Reset the upload area
-            resetUploadArea();
         } catch (error) {
             console.error('Erro:', error);
             progress.style.display = 'none';

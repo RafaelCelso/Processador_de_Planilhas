@@ -5,10 +5,9 @@ import os
 import logging
 import traceback
 import json
-import tempfile
 
-# Substitua a definição de UPLOAD_FOLDER por:
-UPLOAD_FOLDER = tempfile.gettempdir()
+# Modifique esta linha para usar o caminho absoluto
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
@@ -31,43 +30,48 @@ def upload_file():
             return jsonify({'error': 'Nenhum arquivo selecionado'}), 400
         
         if file and file.filename.endswith('.xlsx'):
+            app.logger.info(f"Processando arquivo: {file.filename}")
             filename = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(filename)
-            app.logger.info(f"Arquivo salvo: {filename}")
+            app.logger.info(f"Arquivo salvo em: {filename}")
             
-            try:
+            def generate():
+                yield json.dumps({"progress": 10, "status": "Arquivo recebido"})
+                
+                app.logger.info("Iniciando processamento do Excel")
                 processed_file = process_excel(filename)
                 app.logger.info(f"Arquivo processado: {processed_file}")
-            except Exception as e:
-                app.logger.error(f"Erro ao processar o arquivo: {str(e)}")
-                return jsonify({'error': 'Erro ao processar o arquivo: ' + str(e)}), 500
-            
-            try:
+                yield json.dumps({"progress": 40, "status": "Arquivo processado"})
+                
+                app.logger.info("Iniciando tradução do Excel")
                 translated_file = translate_excel(processed_file)
                 app.logger.info(f"Arquivo traduzido: {translated_file}")
-            except Exception as e:
-                app.logger.error(f"Erro ao traduzir o arquivo: {str(e)}")
-                return jsonify({'error': 'Erro ao traduzir o arquivo: ' + str(e)}), 500
+                yield json.dumps({"progress": 70, "status": "Arquivo traduzido"})
+                
+                app.logger.info("Gerando resumo")
+                try:
+                    summary = generate_summary(translated_file)
+                    app.logger.info("Resumo gerado com sucesso")
+                except Exception as e:
+                    app.logger.error(f"Erro ao gerar resumo: {str(e)}")
+                    summary = "Não foi possível gerar o resumo. Por favor, tente novamente mais tarde."
+                
+                yield json.dumps({
+                    "progress": 100,
+                    "status": "Concluído",
+                    "message": 'Arquivo processado com sucesso',
+                    "summary": summary,
+                    "translated_file": os.path.basename(translated_file)
+                })
             
-            try:
-                summary = generate_summary(translated_file)
-                app.logger.info("Resumo gerado com sucesso")
-            except Exception as e:
-                app.logger.error(f"Erro ao gerar resumo: {str(e)}")
-                summary = "Não foi possível gerar o resumo. Erro: " + str(e)
-            
-            return jsonify({
-                'message': 'Arquivo processado com sucesso',
-                'summary': summary,
-                'translated_file': os.path.basename(translated_file)
-            })
+            return Response(generate(), mimetype='application/json')
         else:
             app.logger.error("Tipo de arquivo não suportado")
             return jsonify({'error': 'Tipo de arquivo não suportado'}), 400
     except Exception as e:
         app.logger.error(f"Erro durante o processamento: {str(e)}")
         app.logger.error(traceback.format_exc())
-        return jsonify({'error': 'Erro interno do servidor: ' + str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/download/<filename>')
 def download_file(filename):
