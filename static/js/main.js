@@ -111,27 +111,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (done) break;
 
                 const chunk = decoder.decode(value);
-                const data = JSON.parse(chunk);
+                const lines = chunk.split('\n');
+                
+                for (const line of lines) {
+                    if (line.trim() !== '') {
+                        try {
+                            const data = JSON.parse(line);
+                            progressBar.style.width = `${data.progress}%`;
+                            progressBar.textContent = `${data.status} - ${data.progress}%`;
 
-                progressBar.style.width = `${data.progress}%`;
-                progressBar.textContent = `${data.status} - ${data.progress}%`;
+                            if (data.progress === 100) {
+                                progress.style.display = 'none';
+                                resultDiv.style.display = 'block';
+                                resultDiv.innerHTML = `
+                                    <h2 class="mb-3">Resultado:</h2>
+                                    <p class="alert alert-success">${data.message}</p>
+                                    <a href="/download/${data.translated_file}" class="btn btn-primary mb-3">Baixar arquivo traduzido</a>
+                                    <h3 class="mt-4">Resumo:</h3>
+                                    <p class="bg-light p-3 rounded">${data.summary}</p>
+                                `;
 
-                if (data.progress === 100) {
-                    progress.style.display = 'none';
-                    resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = `
-                        <h2 class="mb-3">Resultado:</h2>
-                        <p class="alert alert-success">${data.message}</p>
-                        <a href="/download/${data.translated_file}" class="btn btn-primary mb-3">Baixar arquivo traduzido</a>
-                        <h3 class="mt-4">Resumo:</h3>
-                        <p class="bg-light p-3 rounded">${data.summary}</p>
-                    `;
+                                // Dispara os confetes
+                                fireConfetti();
 
-                    // Dispara os confetes
-                    fireConfetti();
-
-                    // Reset the upload area
-                    resetUploadArea();
+                                // Reset the upload area
+                                resetUploadArea();
+                            }
+                        } catch (error) {
+                            console.error('Erro ao analisar JSON:', error);
+                        }
+                    }
                 }
             }
         } catch (error) {

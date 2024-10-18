@@ -37,17 +37,18 @@ def upload_file():
             app.logger.info(f"Arquivo salvo em: {filename}")
             
             def generate():
-                yield json.dumps({"progress": 10, "status": "Arquivo recebido"})
+                app.logger.info("Iniciando geração de resposta")
+                yield json.dumps({"progress": 10, "status": "Arquivo recebido"}) + '\n'
                 
                 app.logger.info("Iniciando processamento do Excel")
                 processed_file = process_excel(filename)
                 app.logger.info(f"Arquivo processado: {processed_file}")
-                yield json.dumps({"progress": 40, "status": "Arquivo processado"})
+                yield json.dumps({"progress": 40, "status": "Arquivo processado"}) + '\n'
                 
                 app.logger.info("Iniciando tradução do Excel")
                 translated_file = translate_excel(processed_file)
                 app.logger.info(f"Arquivo traduzido: {translated_file}")
-                yield json.dumps({"progress": 70, "status": "Arquivo traduzido"})
+                yield json.dumps({"progress": 70, "status": "Arquivo traduzido"}) + '\n'
                 
                 app.logger.info("Gerando resumo")
                 try:
@@ -63,7 +64,7 @@ def upload_file():
                     "message": 'Arquivo processado com sucesso',
                     "summary": summary,
                     "translated_file": os.path.basename(translated_file)
-                })
+                }) + '\n'
             
             return Response(generate(), mimetype='application/json')
         else:
