@@ -141,7 +141,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 resetUploadArea();
                             }
                         } catch (error) {
-                            console.error('Erro ao analisar JSON:', error, 'Linha:', line);
+                            console.error('Erro ao analisar JSON:', error);
+                            console.error('Linha problemática:', line);
+                            console.error('Caractere na posição 47:', line.charAt(46));
                         }
                     }
                 }

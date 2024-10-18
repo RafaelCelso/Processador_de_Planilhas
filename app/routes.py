@@ -58,13 +58,14 @@ def upload_file():
                     app.logger.error(f"Erro ao gerar resumo: {str(e)}")
                     summary = "Não foi possível gerar o resumo. Por favor, tente novamente mais tarde."
                 
-                yield json.dumps({
+                final_response = {
                     "progress": 100,
                     "status": "Concluído",
                     "message": 'Arquivo processado com sucesso',
                     "summary": summary,
                     "translated_file": os.path.basename(translated_file)
-                }) + '\n'
+                }
+                yield json.dumps(final_response) + '\n'
             
             return Response(generate(), mimetype='application/json')
         else:
