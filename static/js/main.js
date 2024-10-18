@@ -106,13 +106,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
 
+            let buffer = '';
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
-                
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n\n');
+                buffer = lines.pop();
+
                 for (const line of lines) {
                     if (line.trim() !== '') {
                         try {
@@ -138,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 resetUploadArea();
                             }
                         } catch (error) {
-                            console.error('Erro ao analisar JSON:', error);
+                            console.error('Erro ao analisar JSON:', error, 'Line:', line);
                         }
                     }
                 }
