@@ -40,21 +40,21 @@ def upload_file():
                 app.logger.info(f"Arquivo processado: {processed_file}")
             except Exception as e:
                 app.logger.error(f"Erro ao processar o arquivo: {str(e)}")
-                return jsonify({'error': 'Erro ao processar o arquivo'}), 500
+                return jsonify({'error': 'Erro ao processar o arquivo: ' + str(e)}), 500
             
             try:
                 translated_file = translate_excel(processed_file)
                 app.logger.info(f"Arquivo traduzido: {translated_file}")
             except Exception as e:
                 app.logger.error(f"Erro ao traduzir o arquivo: {str(e)}")
-                return jsonify({'error': 'Erro ao traduzir o arquivo'}), 500
+                return jsonify({'error': 'Erro ao traduzir o arquivo: ' + str(e)}), 500
             
             try:
                 summary = generate_summary(translated_file)
                 app.logger.info("Resumo gerado com sucesso")
             except Exception as e:
                 app.logger.error(f"Erro ao gerar resumo: {str(e)}")
-                summary = "Não foi possível gerar o resumo. Por favor, tente novamente mais tarde."
+                summary = "Não foi possível gerar o resumo. Erro: " + str(e)
             
             return jsonify({
                 'message': 'Arquivo processado com sucesso',
@@ -67,7 +67,7 @@ def upload_file():
     except Exception as e:
         app.logger.error(f"Erro durante o processamento: {str(e)}")
         app.logger.error(traceback.format_exc())
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Erro interno do servidor: ' + str(e)}), 500
 
 @app.route('/download/<filename>')
 def download_file(filename):
