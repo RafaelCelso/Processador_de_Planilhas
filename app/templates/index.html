@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processador de Planilhas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-top: 50px;
+        }
+        h1 {
+            color: #007bff;
+            font-weight: bold;
+        }
+        .upload-area {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            background-color: #f1f8ff;
+        }
+        .upload-icon {
+            font-size: 48px;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        #fileInput {
+            display: none;
+        }
+        .progress {
+            display: none;
+            margin-top: 20px;
+        }
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f1f8ff;
+        }
+        .file-name {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .upload-success {
+            color: #28a745;
+            display: none;
+        }
+        .upload-animation {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mb-4 text-center">Processador de Planilhas</h1>
+        <form id="uploadForm">
+            <div class="upload-area mb-3" id="dropArea">
+                <i class="fas fa-file-excel upload-icon" id="uploadIcon"></i>
+                <p id="uploadText">Arraste e solte sua planilha Excel aqui ou clique para selecionar</p>
+                <p class="file-name" id="fileName"></p>
+                <i class="fas fa-check upload-success" id="uploadSuccess"></i>
+                <input class="form-control" type="file" id="fileInput" accept=".xlsx">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Enviar e Processar</button>
+        </form>
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+        </div>
+        <div id="result" class="mt-4" style="display: none;"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>
