@@ -112,13 +112,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (done) break;
 
                 buffer += decoder.decode(value, { stream: true });
-                const messages = buffer.split('\n---\n');
-                buffer = messages.pop();
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
 
-                for (const message of messages) {
-                    if (message.trim() !== '') {
+                for (const line of lines) {
+                    if (line.trim() !== '') {
                         try {
-                            const data = JSON.parse(message);
+                            const data = JSON.parse(line);
+                            console.log('Parsed data:', data);  // Log para depuração
                             progressBar.style.width = `${data.progress}%`;
                             progressBar.textContent = `${data.status} - ${data.progress}%`;
 
@@ -140,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 resetUploadArea();
                             }
                         } catch (error) {
-                            console.error('Erro ao analisar JSON:', error, 'Mensagem:', message);
+                            console.error('Erro ao analisar JSON:', error, 'Linha:', line);
                         }
                     }
                 }
