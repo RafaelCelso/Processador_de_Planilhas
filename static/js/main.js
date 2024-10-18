@@ -97,57 +97,35 @@ document.addEventListener('DOMContentLoaded', function() {
             resultDiv.style.display = 'none';
             progress.style.display = 'flex';
             progressBar.style.width = '0%';
+            progressBar.textContent = 'Processando...';
             
             const response = await fetch('/upload', {
                 method: 'POST',
                 body: formData
             });
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-
-            let buffer = '';
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop();
-
-                for (const line of lines) {
-                    if (line.trim() !== '') {
-                        try {
-                            const data = JSON.parse(line);
-                            console.log('Parsed data:', data);  // Log para depuração
-                            progressBar.style.width = `${data.progress}%`;
-                            progressBar.textContent = `${data.status} - ${data.progress}%`;
-
-                            if (data.progress === 100) {
-                                progress.style.display = 'none';
-                                resultDiv.style.display = 'block';
-                                resultDiv.innerHTML = `
-                                    <h2 class="mb-3">Resultado:</h2>
-                                    <p class="alert alert-success">${data.message}</p>
-                                    <a href="/download/${data.translated_file}" class="btn btn-primary mb-3">Baixar arquivo traduzido</a>
-                                    <h3 class="mt-4">Resumo:</h3>
-                                    <p class="bg-light p-3 rounded">${data.summary}</p>
-                                `;
-
-                                // Dispara os confetes
-                                fireConfetti();
-
-                                // Reset the upload area
-                                resetUploadArea();
-                            }
-                        } catch (error) {
-                            console.error('Erro ao analisar JSON:', error);
-                            console.error('Linha problemática:', line);
-                            console.error('Caractere na posição 47:', line.charAt(46));
-                        }
-                    }
-                }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            const data = await response.json();
+            console.log('Resposta do servidor:', data);
+
+            progress.style.display = 'none';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <h2 class="mb-3">Resultado:</h2>
+                <p class="alert alert-success">${data.message}</p>
+                <a href="/download/${data.translated_file}" class="btn btn-primary mb-3">Baixar arquivo traduzido</a>
+                <h3 class="mt-4">Resumo:</h3>
+                <p class="bg-light p-3 rounded">${data.summary}</p>
+            `;
+
+            // Dispara os confetes
+            fireConfetti();
+
+            // Reset the upload area
+            resetUploadArea();
         } catch (error) {
             console.error('Erro:', error);
             progress.style.display = 'none';

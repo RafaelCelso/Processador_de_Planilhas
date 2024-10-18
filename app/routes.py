@@ -22,52 +22,25 @@ def upload_file():
     app.logger.info("Iniciando upload de arquivo")
     try:
         if 'file' not in request.files:
-            app.logger.error("Nenhum arquivo enviado")
             return jsonify({'error': 'Nenhum arquivo enviado'}), 400
         
         file = request.files['file']
         if file.filename == '':
-            app.logger.error("Nenhum arquivo selecionado")
             return jsonify({'error': 'Nenhum arquivo selecionado'}), 400
         
         if file and file.filename.endswith('.xlsx'):
-            app.logger.info(f"Processando arquivo: {file.filename}")
             filename = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(filename)
-            app.logger.info(f"Arquivo salvo em: {filename}")
             
-            def generate():
-                app.logger.info("Iniciando geração de resposta")
-                yield json.dumps({"progress": 10, "status": "Arquivo recebido"}) + '\n'
-                
-                app.logger.info("Iniciando processamento do Excel")
-                processed_file = process_excel(filename)
-                app.logger.info(f"Arquivo processado: {processed_file}")
-                yield json.dumps({"progress": 40, "status": "Arquivo processado"}) + '\n'
-                
-                app.logger.info("Iniciando tradução do Excel")
-                translated_file = translate_excel(processed_file)
-                app.logger.info(f"Arquivo traduzido: {translated_file}")
-                yield json.dumps({"progress": 70, "status": "Arquivo traduzido"}) + '\n'
-                
-                app.logger.info("Gerando resumo")
-                try:
-                    summary = generate_summary(translated_file)
-                    app.logger.info("Resumo gerado com sucesso")
-                except Exception as e:
-                    app.logger.error(f"Erro ao gerar resumo: {str(e)}")
-                    summary = "Não foi possível gerar o resumo. Por favor, tente novamente mais tarde."
-                
-                final_response = {
-                    "progress": 100,
-                    "status": "Concluído",
-                    "message": 'Arquivo processado com sucesso',
-                    "summary": summary,
-                    "translated_file": os.path.basename(translated_file)
-                }
-                yield json.dumps(final_response) + '\n'
+            processed_file = process_excel(filename)
+            translated_file = translate_excel(processed_file)
+            summary = generate_summary(translated_file)
             
-            return Response(generate(), mimetype='application/json')
+            return jsonify({
+                'message': 'Arquivo processado com sucesso',
+                'summary': summary,
+                'translated_file': os.path.basename(translated_file)
+            })
         else:
             app.logger.error("Tipo de arquivo não suportado")
             return jsonify({'error': 'Tipo de arquivo não suportado'}), 400
